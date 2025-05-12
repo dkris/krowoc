@@ -69,10 +69,34 @@ This plan outlines the development of Krowoc, a platform for managing and execut
 ### III. Development Process
 
 #### 1. Project Setup
-- Set up NextJS, Flask, Pocketbase projects
-- Git setup and branching strategy
-- Unified startup script
-- Initialize Pocketbase, and Postgres schema
+- **Repository Initialization**
+  - Create monorepo or separate repos for frontend, backend, and orchestration services
+  - Setup Git with protected main branch, dev and feature branches
+- **Backend Setup (Flask)**
+  - Create virtual environment, install Flask, setup initial route structure
+  - Configure `.env` files with LLM provider keys, DB credentials, logging level
+- **Database (Postgres)**
+  - Define schema migrations using Alembic or SQL files
+  - Create initial tables: users, prompts, executions, votes
+  - Connect Flask with SQLAlchemy ORM
+- **Pocketbase**
+  - Setup Pocketbase schema for user management and admin UI
+  - Seed initial roles and test users
+- **Observability**
+  - Install PostHog SDKs on both frontend and backend
+  - Add loguru to Flask with rotation, error filtering, and request metadata
+- **Testing & Quality**
+  - Add pytest and Playwright scaffolding
+  - Define test strategy for API endpoints and user flows
+- **CI/CD**
+  - Setup GitHub Actions workflow:
+    - Linting and type-checks
+    - Backend test runner
+    - Frontend preview deploy to Vercel
+    - Postgres migration validation
+- **Deployment**
+  - Configure deployment to Vercel (frontend), Render/Heroku (backend), Pocketbase Cloud
+  - Setup staging and production environments with secrets
 
 #### 2. Backend Development (Flask)
 - Implement prompt usage quotas based on user tier (Free, Power, Team)
