@@ -69,11 +69,17 @@ This plan outlines the development of Krowoc, a platform for managing and execut
 ### III. Development Process
 
 #### 1. Project Setup
+- **OAuth Configuration**
+  - Enable OAuth providers (Google, GitHub, Microsoft) via Pocketbase or external identity provider
+  - Set up OAuth credentials for each provider in a secure `.env` or secret store
+  - Configure redirect URIs and scopes per provider requirements
+  - Handle sign-in redirects, token exchange, and session persistence
+  - Sync profile data (email, display name, avatar) into user profile schema
 - **Repository Initialization**
-  - Create monorepo or separate repos for frontend, backend, and orchestration services
+  - Create separate folders for frontend, backend, and orchestration services
   - Setup Git with protected main branch, dev and feature branches
 - **Backend Setup (Flask)**
-  - Create virtual environment, install Flask, setup initial route structure
+  - Create virtual environment using uv (https://docs.astral.sh/uv/), install Flask, setup initial route structure
   - Configure `.env` files with LLM provider keys, DB credentials, logging level
 - **Database (Postgres)**
   - Define schema migrations using Alembic or SQL files
@@ -99,6 +105,12 @@ This plan outlines the development of Krowoc, a platform for managing and execut
   - Setup staging and production environments with secrets
 
 #### 2. Backend Development (Flask)
+- Track login events in PostHog:
+  - `login_success` with provider and user ID
+  - `login_failed` with provider and error reason (non-sensitive only)
+- Implement OAuth login via Pocketbase or an external provider (Google, GitHub, Microsoft)
+- Handle token validation, session storage, and user mapping
+- Sync user profile info (name, email, avatar) to internal schema
 - Implement prompt usage quotas based on user tier (Free, Power, Team)
 - Track prompt_count per user and enforce limits at the API level
 - Return quota exceeded error if prompt creation is blocked
@@ -130,6 +142,12 @@ This plan outlines the development of Krowoc, a platform for managing and execut
 - Implement dead-letter queue using Kafka for unrecoverable jobs
 
 #### 3. Frontend Development (NextJS)
+- Track login events in PostHog:
+  - `login_success` with provider and user ID
+  - `login_failed` with provider and error reason (non-sensitive only)
+- Implement OAuth login options (Google, GitHub, Microsoft) on sign-in page
+- Show login provider options based on environment configuration
+- Manage login redirect and session persistence
 - Add visual usage indicator for prompt quota in Home and Prompts tabs
 - Show "Upgrade" CTA when nearing or exceeding quota limit
 - Display toast or modal when prompt limit is reached
