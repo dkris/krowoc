@@ -72,7 +72,7 @@ This plan outlines the development of Krowoc, a platform for managing and execut
 - Set up NextJS, Flask, Pocketbase projects
 - Git setup and branching strategy
 - Unified startup script
-- Initialize Pocketbase schema
+- Initialize Pocketbase, and Postgres schema
 
 #### 2. Backend Development (Flask)
 - Implement prompt usage quotas based on user tier (Free, Power, Team)
