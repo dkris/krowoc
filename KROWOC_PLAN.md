@@ -5,6 +5,7 @@ This plan outlines the development of Krowoc, a platform for managing and execut
 ---
 
 ### I. Project Overview
+_This section defines what the project aims to build, its core scope, and the high-level outcomes expected for the MVP._
 
 #### 1. Project Goals
 - Develop a user-friendly web application for creating, organizing, and executing prompts.
@@ -30,14 +31,43 @@ This plan outlines the development of Krowoc, a platform for managing and execut
 ---
 
 ### II. Technical Design
+_Outlines the architecture, security posture, and platform infrastructure guiding development._
+
+#### Stack Optimization and Security Enhancements
+- **Unified Data Store:** Migrate entirely to Postgres for all user, admin, and application data; deprecate Pocketbase to reduce integration complexity.
+- **Authentication:** Replace Pocketbase auth with Supabase Auth using OAuth2 with PKCE support and automatic refresh token rotation.
+- **Session Management:**
+  - Use JWTs stored in HTTP-only cookies with CSRF protection.
+  - Implement token expiration (15m–1h) and refresh token logic.
+- **API Design:** 
+  - Adopt GraphQL for consistent API contracts
+  - Define core GraphQL schema types and queries
+  - Generate JSON Schema from GraphQL for validation
+  - Implement Pydantic models that mirror GraphQL types for backend validation
+  - Autogenerate OpenAPI specs for documentation
+- **Frontend State:** Use React Query (TanStack) for data fetching and cache invalidation.
+- **Secrets Management:** Move API key storage to HashiCorp Vault or Doppler from day one.
+- **Observability:** 
+  - Integrate request-level correlation IDs across frontend and backend
+  - Implement health check endpoints with standardized response format
+  - Configure structured logging with context preservation
+- **Containerization:** 
+  - Add Docker support with dev + prod-ready images
+  - Create docker-compose setup for local development
+- **Performance Baseline:**
+  - Define SLOs (e.g., P95 API latency < 800ms)
+  - Use synthetic monitoring to validate uptime and prompt execution flow
+- **API Gateway:** Use Flask as the unified gateway for all requests; centralize rate limiting, auth validation, and logging.
+- **DLQ Strategy:** Store failed executions in Postgres with reason, timestamp, retry count. Expose admin-only endpoints for retry + inspection.
+- **Cost Controls:**
+  - Log token usage and LLM cost approximation per execution.
+  - Enforce per-user cost ceilings on Free tier executions.
 
 #### Data Model Evolution
-- **Hybrid Approach:** Use Pocketbase for user authentication, profiles, and admin UI management.
-- **Relational Data Store:** Use Postgres for core domain entities like prompts, executions, votes, LLM usage logs, and versioning.
-- **Orchestration Integration:** Use Prefect as the task orchestrator to manage inter-system consistency, background scoring, and batch tasks.
-- **Rationale:** Pocketbase simplifies dev/admin UX, while Postgres ensures relational integrity, indexing, and analytical performance.
+- **Unified Approach:** Use Postgres for all data storage, including user authentication, profiles, prompts, executions, votes, and analytics.
+- **Rationale:** Centralizing storage in Postgres reduces complexity, avoids data duplication, and simplifies schema migrations and query operations.
 
-#### Orchestration Strategy
+
 - **Task Orchestration:** Use **Prefect** as the orchestration layer to support multi-stage prompt workflows.
 - **Task Worker:** Introduce a Prefect-based task worker for background jobs such as leaderboard scoring, prompt enrichment, and retryable execution chains.
 - This separation allows Flask to remain focused on API serving while long-running or complex logic is handled reliably in the background.
@@ -49,11 +79,12 @@ This plan outlines the development of Krowoc, a platform for managing and execut
 - **Metrics Monitoring (optional):** Plan for adding Prometheus + Grafana stack or an external APM tool (e.g., Datadog) if scale or complexity increases.
 
 #### 3. Technology Stack
+- **Messaging & Caching:** Redis Pub/Sub for lightweight async messaging, Redis Streams for event transport, Redis for caching, session storage, and rate limiting
 - **Frontend:** NextJS (React + TypeScript), Tailwind CSS, VisActor
-- **Backend:** Flask (Python), Prefect for orchestration, Kafka for async task messaging
-- **Database:** Pocketbase (for authentication/admin), Postgres (for relational data)
+- **Backend:** Flask (Python), Prefect for orchestration
+- **Database:** Postgres (unified data store for user, prompts, and execution data)
 - **LLM Integration:** [`aisuite`](https://github.com/andrewyng/aisuite)
-- **Logging:** Python's `loguru` for structured and streamlined logging in Flask
+- **Logging:** Python `loguru` for structured and streamlined logging in Flask (for relational data)
 
 #### 4. System Architecture
 - **Observability:** PostHog integrated for frontend and backend error tracking, session replay, and product analytics.
@@ -61,16 +92,20 @@ This plan outlines the development of Krowoc, a platform for managing and execut
 - **Frontend:** Next.js for user interface and interactions
 - **Backend:** Flask for business logic and LLM communication
 - **Orchestration:** Prefect task worker for background jobs and multi-stage workflows
-- **Database:** Pocketbase for user/admin data; Postgres for prompt, execution, versioning, votes, and analytics
-- **Messaging:** Kafka for async tasks and event queueing
+- **Database:** Postgres for user/admin data, prompts, executions, versioning, votes, and analytics
+- **Messaging:** Redis Pub/Sub for async tasks, Redis Streams as optional lightweight event transport
 
 ---
 
 ### III. Development Process
+_Defines how the team will set up, build, test, and deploy both backend and frontend systems._
 
 #### 1. Project Setup
 - **OAuth Configuration**
-  - Enable OAuth providers (Google, GitHub, Microsoft) via Pocketbase or external identity provider
+  - Enable OAuth providers (Google, GitHub, Microsoft) via Supabase Auth
+  - Configure PKCE flow for all OAuth providers
+  - Implement token validation and refresh logic
+  - Add HTTP-only cookie storage with CSRF protection
   - Set up OAuth credentials for each provider in a secure `.env` or secret store
   - Configure redirect URIs and scopes per provider requirements
   - Handle sign-in redirects, token exchange, and session persistence
@@ -79,17 +114,23 @@ This plan outlines the development of Krowoc, a platform for managing and execut
   - Create separate folders for frontend, backend, and orchestration services
   - Setup Git with protected main branch, dev and feature branches
 - **Backend Setup (Flask)**
-  - Create virtual environment using uv (https://docs.astral.sh/uv/), install Flask, setup initial route structure
+  - Create virtual environment, install Flask, setup initial route structure
   - Configure `.env` files with LLM provider keys, DB credentials, logging level
+  - Implement health check endpoints with standardized format
+  - Set up basic request logging with correlation IDs
 - **Database (Postgres)**
-  - Define schema migrations using Alembic or SQL files
-  - Create initial tables: users, prompts, executions, votes
+  - Create Alembic migration framework and initial schemas
+  - Define rollback procedures for failed migrations
+  - Implement migration CI/CD validation pipeline
+  - Define schema migrations for initial tables: users, prompts, executions, votes
   - Connect Flask with SQLAlchemy ORM
-- **Pocketbase**
-  - Setup Pocketbase schema for user management and admin UI
-  - Seed initial roles and test users
+- **Development Environment**
+  - Create docker-compose setup for local development
+  - Implement development seed data scripts
+  - Set up hot-reloading for both frontend and backend
 - **Observability**
   - Install PostHog SDKs on both frontend and backend
+  - Configure PostHog for frontend and backend error tracking
   - Add loguru to Flask with rotation, error filtering, and request metadata
 - **Testing & Quality**
   - Add pytest and Playwright scaffolding
@@ -101,16 +142,31 @@ This plan outlines the development of Krowoc, a platform for managing and execut
     - Frontend preview deploy to Vercel
     - Postgres migration validation
 - **Deployment**
-  - Configure deployment to Vercel (frontend), Render/Heroku (backend), Pocketbase Cloud
+  - Configure deployment to Vercel (frontend), Render/Heroku (backend)
   - Setup staging and production environments with secrets
 
 #### 2. Backend Development (Flask)
+- Integrate Redis:
+  - Use Pub/Sub for prompt execution events
+  - Use Redis Streams for multi-consumer workflows like leaderboard updates
+  - Implement IP/user-based rate limiting logic
+  - Store short-lived sessions or tokens in Redis (if not fully handled by Supabase)
+  - Set up Redis cache with environment-specific TTLs
+- Integrate Unleash for feature flagging infrastructure from day one
+- Implement Authentication:
+  - Configure Supabase Auth with PKCE flow for all OAuth providers
+  - Implement token validation and refresh logic
+  - Add HTTP-only cookie storage with CSRF protection
 - Track login events in PostHog:
   - `login_success` with provider and user ID
   - `login_failed` with provider and error reason (non-sensitive only)
-- Implement OAuth login via Pocketbase or an external provider (Google, GitHub, Microsoft)
+- Implement OAuth login via Supabase Auth (Google, GitHub, Microsoft)
 - Handle token validation, session storage, and user mapping
 - Sync user profile info (name, email, avatar) to internal schema
+- Implement API Contract:
+  - Define GraphQL schema with core types and queries
+  - Generate JSON Schema from GraphQL for validation
+  - Implement Pydantic models matching GraphQL types
 - Implement prompt usage quotas based on user tier (Free, Power, Team)
 - Track prompt_count per user and enforce limits at the API level
 - Return quota exceeded error if prompt creation is blocked
@@ -126,10 +182,9 @@ This plan outlines the development of Krowoc, a platform for managing and execut
 - Unit and integration tests with pytest
 - Introduce a Prefect orchestration layer to support scalable, multi-stage prompt workflows
 - Introduce prompt lifecycle states: Draft → Published → Archived
-- Integrate Postgres alongside Pocketbase to manage prompts, executions, versions, and votes
+- Ensure Postgres schema supports prompts, executions, versions, and votes
 - RESTful APIs for prompts, execution, user and usage data
 - Integrate with `aisuite`
-- Kafka integration
 - Streaming LLM responses
 - Comprehensive logging using `loguru`
 - Frontpage leaderboard logic:
@@ -139,67 +194,178 @@ This plan outlines the development of Krowoc, a platform for managing and execut
   - Calculate ranking scores and expose API endpoint for top 50 prompts
 - Define retry strategy for failed prompt executions (e.g., 2 retries with exponential backoff)
 - Set timeout thresholds (e.g., 30s max response window for LLMs)
-- Implement dead-letter queue using Kafka for unrecoverable jobs
 
 #### 3. Frontend Development (NextJS)
-- Track login events in PostHog:
-  - `login_success` with provider and user ID
-  - `login_failed` with provider and error reason (non-sensitive only)
-- Implement OAuth login options (Google, GitHub, Microsoft) on sign-in page
-- Show login provider options based on environment configuration
-- Manage login redirect and session persistence
-- Add visual usage indicator for prompt quota in Home and Prompts tabs
-- Show "Upgrade" CTA when nearing or exceeding quota limit
-- Display toast or modal when prompt limit is reached
-- Implement a reusable PromptEditorForm component used across views
-  - Accepts props for mode (create/edit), initial values, and context (e.g., 'home', 'prompts')
-- Add prompt creation support in:
-  - **Home Tab**: Button triggers modal or drawer with `PromptEditorForm`
-  - **Prompts Tab**: Sticky "+ New Prompt" button opens `PromptEditorForm`, refreshes list post-submit
-- Track `prompt_created` event in PostHog with originating context
-- Add prompt creation form supporting:
-  - Title, Description, Prompt Text
-  - Tag multi-select input
-  - Optional model selection with validation and help text
-- Disable execution on incompatible models if a whitelist is defined
-- Display a notice when model-specific restriction is active
-- Integrate PostHog JavaScript SDK to track UI events, exceptions, prompt interactions, and usage funnels
-- Implement session replay for debugging via PostHog (e.g., identify issues in prompt editor or execution flows)
-- Unit and E2E tests with Jest and Playwright
-- Build React + Tailwind UI components
-- Views:
+- Implement Type Safety:
+  - Create TypeScript interfaces mirroring backend Pydantic models
+  - Set up zod schemas for client-side validation
+  - Implement GraphQL typed queries with codegen
+- Configure Frontend State Management:
+  - Implement React Query for data fetching and cache invalidation
+  - Set up optimistic updates for common interactions
+  - Configure proper error boundaries and fallbacks
+- Implement Authentication UI:
+  - Track login events in PostHog:
+    - `login_success` with provider and user ID
+    - `login_failed` with provider and error reason (non-sensitive only)
+  - Implement OAuth login options (Google, GitHub, Microsoft) on sign-in page
+  - Show login provider options based on environment configuration
+  - Manage login redirect and session persistence
+- Implement Quota Management UI:
+  - Add visual usage indicator for prompt quota in Home and Prompts tabs
+  - Show "Upgrade" CTA when nearing or exceeding quota limit
+  - Display toast or modal when prompt limit is reached
+- Create Core Components:
+  - Implement a reusable PromptEditorForm component used across views
+    - Accepts props for mode (create/edit), initial values, and context (e.g., 'home', 'prompts')
+  - Add prompt creation support in:
+    - **Home Tab**: Button triggers modal or drawer with `PromptEditorForm`
+    - **Prompts Tab**: Sticky "+ New Prompt" button opens `PromptEditorForm`, refreshes list post-submit
+- Configure Analytics & Monitoring:
+  - Track `prompt_created` event in PostHog with originating context
+  - Integrate PostHog JavaScript SDK to track UI events, exceptions, prompt interactions, and usage funnels
+  - Implement session replay for debugging via PostHog (e.g., identify issues in prompt editor or execution flows)
+  - Add error boundary reporting to PostHog
+- Implement Form Validation:
+  - Add prompt creation form supporting:
+    - Title, Description, Prompt Text
+    - Tag multi-select input
+    - Optional model selection with validation and help text
+  - Disable execution on incompatible models if a whitelist is defined
+  - Display a notice when model-specific restriction is active
+- Configure Development Environment:
+  - Set up hot-reloading for frontend
+  - Implement storybook for component development
+  - Create mock API responses for offline development
+- Implement Testing Infrastructure:
+  - Unit and E2E tests with Jest and Playwright
+  - Configure component testing with Testing Library
+  - Set up visual regression testing
+- Build Core UI:
+  - Build React + Tailwind UI components
+  - Implement responsive design for all views
+  - Ensure accessibility compliance (WCAG AA)
+- Create Application Views:
   - **Home:** API Key Usage, Total Prompts Created, 5 Most Recent Prompts Executed
   - **Dashboard:** Prompt Executions, Execution Trend, Performance Overview, Execution Success Rate, Active Prompts
   - **Prompts:** Paginated prompt card list view with sorting and filtering options
   - Create/Edit, Detail, Settings
-- State management
-- API integration
-- Real-time LLM response rendering
+- Implement API Integration:
+  - GraphQL query hooks with proper loading/error states
+  - Websocket connection for real-time LLM response rendering
+  - Optimistic UI updates for better UX
 
 #### 4. Testing
-- Unit and integration tests
-- E2E tests with Playwright
-- User testing and feedback
+- Backend Testing:
+  - Implement unit tests with pytest for core business logic
+  - Create integration tests for API endpoints
+  - Set up database testing with test fixtures
+  - Add contract testing for API schemas
+- Frontend Testing:
+  - Implement component tests with React Testing Library
+  - Add E2E tests with Playwright for critical user journeys
+  - Set up visual regression testing for UI components
+  - Configure storybook testing for component states
+- API Contract Testing:
+  - Validate schema consistency between frontend and backend
+  - Test GraphQL schema against generated TypeScript types
+  - Verify JSON Schema validation in API responses
+- Performance Testing:
+  - Set up benchmark tests for API response times
+  - Create load tests for concurrent user scenarios
+  - Test streaming response performance
+- User Testing:
+  - Conduct usability testing with representative users
+  - Gather feedback on UX friction points
+  - Validate feature discoverability
 
 #### 5. Deployment
-- Deploy to Vercel/Netlify (frontend), Heroku/Render (backend), Pocketbase Cloud
-- Deployment documentation
+- Infrastructure Setup:
+  - Set up Vercel project for frontend deployment
+  - Configure Render/Heroku for backend services
+  - Provision Redis Cloud instance
+  - Set up Supabase project for auth and database
+- CI/CD Pipeline:
+  - Configure GitHub Actions workflows for automated testing
+  - Set up automated preview deployments for PRs
+  - Implement automated schema validation
+  - Create deployment approval gates for production
+- Environment Configuration:
+  - Set up separate development, staging, and production environments
+  - Configure environment-specific variables
+  - Implement secrets management for sensitive credentials
+- Monitoring Setup:
+  - Configure health check monitoring
+  - Set up error alerting for critical issues
+  - Implement logging pipelines
+- Deployment Documentation:
+  - Create runbooks for common deployment scenarios
+  - Document rollback procedures
+  - Provide environment setup instructions
 
 #### 6. Performance Engineering
-- Conduct load testing using k6 or Locust targeting API endpoints and orchestration tasks
-- Define baseline metrics: P95 latency, throughput per user, time to first byte for streaming responses
-- Continuously monitor these metrics during deployment cycles
+- Database Optimization:
+  - Implement connection pooling for database access
+  - Create efficient indexes for common query patterns
+  - Set up query monitoring and optimization
+- Caching Strategy:
+  - Implement tiered caching with appropriate TTLs:
+    - Application memory cache for hot data
+    - Redis cache for shared application data
+    - CDN for static assets
+  - Create cache invalidation hooks for data changes
+- Load Testing:
+  - Conduct load testing using k6 or Locust targeting API endpoints and orchestration tasks
+  - Define baseline metrics: P95 latency, throughput per user, time to first byte for streaming responses
+  - Simulate scaled user scenarios for performance testing
+- Performance Monitoring:
+  - Set up real-time performance dashboards
+  - Configure alerts for performance degradation
+  - Implement user-facing performance metrics
+- Optimization:
+  - Identify and optimize slow database queries
+  - Implement frontend performance optimization (code splitting, lazy loading)
+  - Configure CDN for edge caching of static assets
+  - Continuously monitor these metrics during deployment cycles
 
 #### 7. CI/CD Integration
-- Implement CI using GitHub Actions:
+- Automated Testing:
+  - Implement CI using GitHub Actions for continuous integration
+  - Run backend unit and integration tests automatically
+  - Execute frontend component and E2E tests
+  - Generate test coverage reports
+- Code Quality:
+  - Configure type checking for both frontend and backend
+  - Set up linters and style checkers (ESLint, Prettier, Pylint, Black)
+  - Implement code complexity metrics with thresholds
+  - Enforce code review requirements
+- Deployment Automation:
   - Run backend unit tests, linters, and type checks
   - Bundle frontend and deploy preview via Vercel
   - Validate schema migrations with Postgres tests
-- Ensure merge protection and enforce test pass status on main branches
+  - Set up production deployment workflow with approval gates
+- Database Safety:
+  - Validate database migrations in CI before deployment
+  - Create rollback scripts for database changes
+  - Test migrations against schema snapshot
+- Security Scanning:
+  - Implement dependency vulnerability scanning
+  - Run SAST (Static Application Security Testing)
+  - Scan Docker images for vulnerabilities
+- Documentation:
+  - Automatically generate API documentation
+  - Update schema documentation from code
+  - Maintain changelog from commit messages
+- Workflow Enforcement:
+  - Ensure merge protection and enforce test pass status on main branches
+  - Require code review approvals
+  - Enforce conventional commit message format
+  - Automate release version bumping
 
 ---
 
 ### IV. UI/UX Design
+_Describes the core UI views and surface areas where users will interact with Krowoc._
 
 #### Surface Areas
 
@@ -213,15 +379,20 @@ This plan outlines the development of Krowoc, a platform for managing and execut
 ---
 
 ### V. Tasks and Deliverables
+_Tracks execution scope and maps individual tasks to technical and business deliverables._
 
 #### Tasks and Deliverables
 
 | Category                 | Task                                                                 | Deliverable                                     |
 |--------------------------|----------------------------------------------------------------------|--------------------------------------------------|
 | Project Setup           | Scaffold projects, Git setup, dev scripts                           | Initialized codebases                           |
-| Database                | Define schema in Pocketbase                                          | Data model in place                             |
+| Development Environment | Create docker-compose setup, seed data scripts, hot-reloading       | Developer-friendly local setup                  |
+| API Contract Setup      | Define GraphQL schema, generate JSON Schema, implement Pydantic models | Type-safe, validated API contracts           |
+| Database                | Create Alembic migration framework, implement migration validation  | Versioned, testable data model                  |
+| Authentication          | Configure Supabase Auth with PKCE, implement token handling         | Secure, standards-compliant auth flow           |
+| Core Monitoring         | Implement health checks, correlation IDs, PostHog integration       | Observable platform with diagnostics            |
 | Prompt Authoring       | Add support for prompt metadata (title, description, prompt text, tags, model preference)   | Prompt creation/edit UI and schema updates       |
-| Backend (Flask)         | API endpoints, LLM integration, Kafka, logging, PostHog analytics integration | Working REST API, async handlers, logs, observability |
+| Backend (Flask)         | GraphQL endpoints, LLM integration, cost tracking, DLQ handling, logging | Working REST API, async handlers, logs, observability |
 | Backend Testing         | Unit + integration tests with `pytest`                               | CI-ready test coverage                          |
 | Logging & Debugging     | Structured logs with `loguru`                                        | Debuggable production logs                      |
 | Frontend (NextJS)       | UI components, state management, PromptEditorForm integration in Home & Prompts tabs, PostHog session replay + event analytics | Functional and styled UI with observability |
@@ -229,13 +400,14 @@ This plan outlines the development of Krowoc, a platform for managing and execut
 | Prompt Execution        | Streaming responses, `aisuite` SDK use                               | LLM response UX complete                        |
 | Credential Management   | Secure storage + retrieval of API keys                              | Settings page and backend endpoints             |
 | Dashboard & Metrics     | Usage charts via VisActor                                            | Functional analytics dashboard                  |
-| Deployment              | Deploy to Vercel/Heroku, document setup                             | Live MVP + deployment docs                      |
+| Deployment              | Dockerized services deployed to Vercel/Render, Postgres provisioned via Supabase/Railway | Live MVP + deployment docs                      |
 | Documentation           | Dev onboarding, usage guides, API docs                              | Full developer documentation                    |
 | User Testing & Feedback | Session planning, usability evaluation                               | Feedback report                                 |
 
 ---
 
 ### VI. Frontpage Prompt Ranking (Post-MVP Backend Support)
+_Explains the algorithm and backend implementation details for future leaderboard features._
 
 _See also: [Strategic Initiatives](#viii-strategic-initiatives) → Data Model Strategy for scoring logic._
 
@@ -262,6 +434,7 @@ score = (E / max(E)) * 0.6 + (V / max(V)) * 0.4
 ---
 
 ### VII. Risks and Mitigation
+_Identifies technical and operational risks and how they will be managed._
 
 | Risk                                 | Mitigation Strategy                                                                 |
 |--------------------------------------|--------------------------------------------------------------------------------------|
@@ -278,8 +451,21 @@ score = (E / max(E)) * 0.6 + (V / max(V)) * 0.4
 ---
 
 ### VIII. Strategic Initiatives
+_Documents broader system capabilities such as orchestration, AI enhancement, and extensibility._
 
-#### 1. Data Model Strategy
+#### 1. Feature Flag Infrastructure
+- Integrate Unleash to manage rollouts, A/B testing, and beta access control.
+- Allow granular control of experimental or tiered features via feature toggles.
+- Enable backend flags that frontend can dynamically query.
+
+#### 2. AI-Driven Features (Current Scope)
+- **Prompt Suggestions**: Suggest prompts based on historical success patterns or similarity to previous inputs.
+- **Prompt Optimization**: Enable LLM-generated prompt rewrites based on observed outcomes or goals.
+- **Vector Search**: Use vector embeddings to allow semantic prompt search (e.g., pgvector, Weaviate).
+- **Autonomous Prompt Agents**: Enable background AI agents to scan domains of interest and suggest new prompts (crawler-based).
+- **Periodic Prompt Generation**: Auto-generate and schedule prompt suggestions based on user preferences and interest history.
+
+#### 3. Data Model Strategy
 - Enhance prompt ranking logic by incorporating Wilson score confidence interval for fairer rankings, especially with low-vote prompts.
   - Formula:
     ```
@@ -299,6 +485,7 @@ score = (E / max(E)) * 0.6 + (V / max(V)) * 0.4
 ---
 
 ### IX. Go-To-Market Strategy
+_Outlines adoption targets, pricing tiers, success metrics, and the phased launch plan._
 
 #### 1. Target Users
 
@@ -338,6 +525,7 @@ score = (E / max(E)) * 0.6 + (V / max(V)) * 0.4
 ---
 
 ### X. Roadmap
+_Defines major future features that are valuable but not required in the MVP._
 
 #### 1. Roadmap Items
 
