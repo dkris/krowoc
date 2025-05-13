@@ -17,5 +17,3 @@ def register_blueprints(app):
     
     # Register other API components to the api_blueprint
     # Example: api_bp.register_blueprint(users_bp) 
-
-# api package 
