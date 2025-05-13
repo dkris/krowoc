@@ -57,3 +57,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Configured Docker for local development
 
 ## [Unreleased] 
+
+### Fixed
+
+#### Frontend
+- Fixed CSS loading on the start page by:
+  - Added proper Tailwind CSS configuration with tailwind.config.js
+  - Created _app.tsx file to import global styles
+  - Added globals.css with Tailwind directives
+  - Configured PostCSS with postcss.config.js 
