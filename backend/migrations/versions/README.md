@@ -1,24 +1,28 @@
 # Migration Versions
 
-This directory contains the Alembic migration versions for the database.
+This directory contains database migration versions managed by Alembic.
+
+## Migration Commands
 
 To generate a new migration:
-
-```bash
-cd backend
-alembic revision --autogenerate -m "Description of the migration"
+```
+alembic revision --autogenerate -m "description of changes"
 ```
 
-To upgrade the database to the latest version:
-
-```bash
-cd backend
+To apply migrations:
+```
 alembic upgrade head
 ```
 
-To downgrade the database to a specific version:
+To downgrade:
+```
+alembic downgrade -1
+```
 
-```bash
-cd backend
-alembic downgrade <revision>
-``` 
+## Current Schema
+
+The current schema includes:
+- users
+- prompts
+- api_keys
+- executions 
