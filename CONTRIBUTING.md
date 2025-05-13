@@ -107,11 +107,17 @@ Closes #123
 
 ## Branching Strategy
 
+We follow a GitFlow-inspired branching strategy:
+
 - `main` - Production-ready code
-- `develop` - Integration branch for features
-- `feature/*` - New features or enhancements
-- `fix/*` - Bug fixes
-- `docs/*` - Documentation updates
+- `develop` - Integration branch for active development
+- `feature/*` - For developing new features
+- `bugfix/*` - For non-critical bug fixes
+- `hotfix/*` - For critical fixes needing immediate deployment
+- `release/*` - For preparing releases
+- `docs/*` - For documentation changes only
+
+For complete details on workflow and processes, see our [Git Branching Strategy](docs/GIT_BRANCHING_STRATEGY.md).
 
 ## Review Process
 

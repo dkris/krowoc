@@ -34,6 +34,18 @@ krowoc/
 
 For detailed setup instructions, see [Getting Started Guide](docs/development/getting-started.md).
 
+## Git Workflow
+
+This project follows a GitFlow-inspired branching strategy:
+
+- `main` - Production-ready code
+- `develop` - Integration branch for active development
+- Feature branches (`feature/*`) - For new features
+- Bugfix branches (`bugfix/*`) - For non-critical bug fixes
+- Hotfix branches (`hotfix/*`) - For critical production fixes
+
+For complete details, see our [Git Branching Strategy](docs/GIT_BRANCHING_STRATEGY.md).
+
 ## Documentation
 
 - [Project Status](PROJECT_STATUS.md) - Current status and next steps
