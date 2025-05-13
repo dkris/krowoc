@@ -26,6 +26,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Execution model for tracking prompt executions
 - Implemented Alembic for database migrations
 - Added requirements.txt with dependencies
+- Implemented Supabase authentication integration:
+  - Added auth service for JWT validation and user management
+  - Created middleware for protecting routes
+  - Added authentication endpoints for user verification
+  - Set up test cases for authentication
 
 #### Frontend (Next.js)
 - Created basic Next.js application with TypeScript
