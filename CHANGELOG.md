@@ -26,7 +26,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Execution model for tracking prompt executions
 - Implemented Alembic for database migrations
 - Added requirements.txt with dependencies
-- Created database initialization and migration scripts for automated setup
+- Created database initialization and migration scripts for automated setup:
+  - Added init_db.py script that waits for database availability and runs migrations
+  - Created entrypoint.sh to execute initialization before application startup
+  - Ensured initial schema migration will be created automatically if none exists
 - Updated Docker configuration to run migrations on startup
 
 #### Frontend (Next.js)
@@ -42,4 +45,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 #### Development Environment
 - Added environment variable example file (_env.example)
-- Configured Docker for local development 
+- Configured Docker for local development
+- Enhanced PostgreSQL integration with automated database initialization 
