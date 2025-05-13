@@ -1,37 +1,63 @@
 # Krowoc Frontend
 
-This directory contains the NextJS frontend application for Krowoc.
+This is the frontend for the Krowoc application, built with Next.js, TypeScript, and Tailwind CSS.
 
-## Technology Stack
+## Tech Stack
 
-- NextJS (React + TypeScript)
-- Tailwind CSS for styling
-- VisActor for data visualization
-- React Query (TanStack) for data fetching and cache
-- PostHog for analytics and error tracking
+- [Next.js](https://nextjs.org/) - React framework
+- [TypeScript](https://www.typescriptlang.org/) - Type-safe JavaScript
+- [Tailwind CSS](https://tailwindcss.com/) - Utility-first CSS framework
+- [React Query](https://tanstack.com/query/latest) - Data fetching library
 
 ## Getting Started
 
-Coming soon...
-
-## Development
+First, install dependencies:
 
 ```bash
-# Install dependencies
 npm install
+# or
+yarn install
+```
 
-# Run the development server
+Then, run the development server:
+
+```bash
 npm run dev
+# or
+yarn dev
 ```
 
-## Directory Structure
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
+## Project Structure
+
+- `/components` - Reusable UI components
+  - `/layout` - Layout components including the main application layout
+- `/pages` - Next.js pages
+- `/styles` - Global CSS styles including Tailwind imports
+- `/lib` - Utility functions and shared logic
+- `/types` - TypeScript type definitions
+
+## Building for Production
+
+```bash
+npm run build
+# or
+yarn build
 ```
-frontend/
-├── components/      # Reusable UI components
-├── pages/           # NextJS pages and API routes
-├── public/          # Static assets
-├── styles/          # Global styles
-├── lib/             # Utility functions and hooks
-└── types/           # TypeScript type definitions
+
+## Deployment
+
+The application can be deployed using:
+
+```bash
+npm run start
+# or
+yarn start
+```
+
+Or using the provided Docker configuration:
+
+```bash
+docker-compose up frontend
 ``` 
