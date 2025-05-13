@@ -26,6 +26,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Execution model for tracking prompt executions
 - Implemented Alembic for database migrations
 - Added requirements.txt with dependencies
+- Created database initialization and migration scripts for automated setup
+- Updated Docker configuration to run migrations on startup
 
 #### Frontend (Next.js)
 - Created basic Next.js application with TypeScript
