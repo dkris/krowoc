@@ -30,7 +30,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added init_db.py script that waits for database availability and runs migrations
   - Created entrypoint.sh to execute initialization before application startup
   - Ensured initial schema migration will be created automatically if none exists
+  - Added robust retry mechanism for database connection
+  - Implemented proper error handling for migration failures
 - Updated Docker configuration to run migrations on startup
+- Integrated database health check into application startup sequence
 
 #### Frontend (Next.js)
 - Created basic Next.js application with TypeScript
@@ -46,4 +49,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 #### Development Environment
 - Added environment variable example file (_env.example)
 - Configured Docker for local development
-- Enhanced PostgreSQL integration with automated database initialization 
+- Enhanced PostgreSQL integration with automated database initialization
+- Streamlined developer experience with zero-setup database configuration 
