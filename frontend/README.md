@@ -33,10 +33,33 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 - `/components` - Reusable UI components
   - `/layout` - Layout components including the main application layout
+  - `/auth` - Authentication-related components
 - `/pages` - Next.js pages
+  - `/auth` - Authentication pages (login, signup, password reset)
 - `/styles` - Global CSS styles including Tailwind imports
 - `/lib` - Utility functions and shared logic
 - `/types` - TypeScript type definitions
+
+## Authentication Setup
+
+This project uses [Supabase](https://supabase.com/) for authentication. To set up authentication:
+
+1. Create a Supabase project at [https://app.supabase.com/](https://app.supabase.com/)
+2. Get your project URL and anon key from the Supabase dashboard
+3. Create a `.env.local` file in the frontend directory with the following variables:
+
+```
+# Supabase Configuration
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+
+# Application URLs (for OAuth redirects)
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
+```
+
+4. For OAuth providers (Google, GitHub, Microsoft), configure them in the Supabase Authentication settings:
+   - Set the callback URL to: `http://localhost:3000/auth/callback` (for local development)
+   - For production, use your production URL: `https://your-domain.com/auth/callback`
 
 ## Building for Production
 
