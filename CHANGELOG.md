@@ -62,3 +62,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Configured Docker for local development
 
 ## [Unreleased] 
+
+### Added
+
+#### Frontend (Next.js)
+- Configured Tailwind CSS with proper configuration files
+- Set up PostCSS for processing Tailwind directives
+- Added global CSS styles with Tailwind imports
+- Created modular layout component system:
+  - Implemented base Layout component with responsive design
+  - Added header, main content area, and footer sections
+  - Configured proper meta tags and viewport settings
+- Updated application structure to use layout components
+- Improved project documentation with detailed README 
