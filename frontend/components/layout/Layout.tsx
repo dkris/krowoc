@@ -31,17 +31,41 @@ export default function Layout({ children, title = 'Krowoc' }: LayoutProps) {
         <header className="bg-white shadow">
           <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center">
-              <Link href="/" className="flex items-center">
-                <h1 className="text-2xl font-bold tracking-tight text-gray-900">{title}</h1>
-              </Link>
+              <div className="flex items-center space-x-8">
+                <Link href="/" className="flex items-center">
+                  <h1 className="text-2xl font-bold tracking-tight text-gray-900">{title}</h1>
+                </Link>
+                
+                {!isLoading && user && (
+                  <nav className="flex items-center space-x-6">
+                    <Link 
+                      href="/prompts" 
+                      className={`text-sm font-medium ${
+                        router.pathname.startsWith('/prompts') 
+                          ? 'text-blue-600' 
+                          : 'text-gray-500 hover:text-gray-900'
+                      }`}
+                    >
+                      Prompts
+                    </Link>
+                    <Link 
+                      href="/profile" 
+                      className={`text-sm font-medium ${
+                        router.pathname === '/profile' 
+                          ? 'text-blue-600' 
+                          : 'text-gray-500 hover:text-gray-900'
+                      }`}
+                    >
+                      Profile
+                    </Link>
+                  </nav>
+                )}
+              </div>
               
-              <nav className="flex items-center space-x-4">
+              <div className="flex items-center">
                 {!isLoading && (
                   user ? (
                     <div className="flex items-center space-x-4">
-                      <Link href="/profile" className="text-sm font-medium text-gray-700 hover:text-gray-900">
-                        Profile
-                      </Link>
                       <span className="text-sm text-gray-700">
                         {user.email}
                       </span>
@@ -66,7 +90,7 @@ export default function Layout({ children, title = 'Krowoc' }: LayoutProps) {
                     </div>
                   )
                 )}
-              </nav>
+              </div>
             </div>
           </div>
         </header>
