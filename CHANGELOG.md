@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.0] - 2024-07-24
+
 ### Added
 
 #### Frontend (Next.js)
@@ -104,3 +106,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 #### Development Environment
 - Added environment variable example file (_env.example)
 - Configured Docker for local development
+
