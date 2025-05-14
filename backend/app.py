@@ -8,6 +8,9 @@ import time
 import psutil
 from loguru import logger
 
+# Import API module for blueprint registration
+from backend.api import register_blueprints
+
 # Track application start time for uptime calculation
 APP_START_TIME = time.time()
 
@@ -93,7 +96,8 @@ def create_app(test_config=None):
             }
         }
     
-    # Additional route registration will go here
+    # Register blueprints using the central registration function
+    register_blueprints(app)
     
     # Initialize logging
     logger.info("Application started")

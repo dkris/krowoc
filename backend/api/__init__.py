@@ -1,6 +1,7 @@
 from flask import Blueprint
 from .health import health_bp
 from .graphql import graphql_bp
+from .prompts import prompt_blueprint
 
 # Create a parent blueprint for all API routes
 api_bp = Blueprint('api', __name__, url_prefix='/api/v1')
@@ -15,6 +16,9 @@ def register_blueprints(app):
     
     # Register the GraphQL blueprint
     app.register_blueprint(graphql_bp, url_prefix='/api/v1')
+    
+    # Register the prompts blueprint
+    app.register_blueprint(prompt_blueprint)
     
     # Register the main API blueprint
     app.register_blueprint(api_bp)
