@@ -10,8 +10,6 @@ class User(Base):
     email = Column(String(255), unique=True, index=True, nullable=False)
     display_name = Column(String(255), nullable=True)
     avatar_url = Column(String(512), nullable=True)
-    auth_provider = Column(String(50), nullable=True)  # 'google', 'github', 'microsoft'
-    auth_id = Column(String(255), nullable=True)
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())

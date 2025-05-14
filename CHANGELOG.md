@@ -5,6 +5,55 @@ All notable changes to the Krowoc project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+#### Frontend (Next.js)
+- Configured Tailwind CSS with proper configuration files
+- Set up PostCSS for processing Tailwind directives
+- Added global CSS styles with Tailwind imports
+- Created modular layout component system:
+  - Implemented base Layout component with responsive design
+  - Added header, main content area, and footer sections
+  - Configured proper meta tags and viewport settings
+- Updated application structure to use layout components
+- Improved project documentation with detailed README
+- Implemented Supabase authentication foundation:
+  - Created auth client configuration and utility functions
+  - Built React context for managing authentication state
+  - Added customizable form hooks with validation
+  - Implemented email/password authentication
+  - Added OAuth provider support (Google, GitHub, Microsoft)
+  - Created authentication UI components and pages
+  - Added protected routes with client and server-side validation
+  - Implemented middleware for session handling
+  - Created user profile page for authenticated users
+  - Added comprehensive documentation for auth setup
+
+#### Backend (Flask)
+- Created database initialization and migration scripts for automated setup:
+  - Added init_db.py script that waits for database availability and runs migrations
+  - Created entrypoint.sh to execute initialization before application startup
+  - Ensured initial schema migration will be created automatically if none exists
+  - Added robust retry mechanism for database connection
+  - Implemented proper error handling for migration failures
+- Updated Docker configuration to run migrations on startup
+- Integrated database health check into application startup sequence
+
+#### Development Environment
+- Enhanced PostgreSQL integration with automated database initialization
+- Streamlined developer experience with zero-setup database configuration
+
+### Fixed
+
+#### Frontend
+- Fixed CSS loading on the start page by:
+  - Added proper Tailwind CSS configuration with tailwind.config.js
+  - Created _app.tsx file to import global styles
+  - Added globals.css with Tailwind directives
+  - Configured PostCSS with postcss.config.js
+
 ## [1.0.0] - 2024-07-21
 
 ### Added
@@ -55,14 +104,3 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 #### Development Environment
 - Added environment variable example file (_env.example)
 - Configured Docker for local development
-
-## [Unreleased] 
-
-### Fixed
-
-#### Frontend
-- Fixed CSS loading on the start page by:
-  - Added proper Tailwind CSS configuration with tailwind.config.js
-  - Created _app.tsx file to import global styles
-  - Added globals.css with Tailwind directives
-  - Configured PostCSS with postcss.config.js 
