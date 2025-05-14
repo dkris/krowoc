@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+#### Backend (Flask)
+- Implemented GraphQL API with Graphene:
+  - Created type definitions for Users, Prompts, Executions, and API Keys
+  - Implemented comprehensive queries with filtering and pagination
+  - Added mutations for CRUD operations on all entities
+  - Set up validation using Pydantic for all inputs
+  - Added secure API key storage with hashing
+  - Created GraphQL endpoint with GraphiQL interface
+  - Implemented proper error handling and validation
+
 ## [1.1.0] - 2024-07-24
 
 ### Added
