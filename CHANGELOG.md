@@ -9,6 +9,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+#### Frontend (Next.js)
+- Implemented complete prompt management UI:
+  - Created PromptEditor component for creating and editing prompts
+  - Built PromptCard component to display prompt information
+  - Implemented PromptList component to display a grid of prompt cards
+  - Added prompt management pages:
+    - /prompts - Main listing page for user's prompts
+    - /prompts/new - Page for creating a new prompt
+    - /prompts/[id] - Page for viewing a specific prompt
+    - /prompts/edit/[id] - Page for editing an existing prompt
+  - Created TypeScript types for prompts
+  - Implemented prompt API client with Supabase
+  - Updated Layout component with navigation for prompts
+  - Added proper error handling and loading states
+  - Implemented authentication checks for protected routes
+
 #### Backend (Flask)
 - Implemented GraphQL API with Graphene:
   - Created type definitions for Users, Prompts, Executions, and API Keys
