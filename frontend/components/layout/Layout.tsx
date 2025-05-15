@@ -49,6 +49,16 @@ export default function Layout({ children, title = 'Krowoc' }: LayoutProps) {
                       Prompts
                     </Link>
                     <Link 
+                      href="/dashboard" 
+                      className={`text-sm font-medium ${
+                        router.pathname === '/dashboard' 
+                          ? 'text-blue-600' 
+                          : 'text-gray-500 hover:text-gray-900'
+                      }`}
+                    >
+                      Dashboard
+                    </Link>
+                    <Link 
                       href="/profile" 
                       className={`text-sm font-medium ${
                         router.pathname === '/profile' 
