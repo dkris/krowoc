@@ -7,6 +7,7 @@ import datetime
 import sqlalchemy
 from sqlalchemy import text
 from ..utils.logging import get_contextual_logger
+from ..utils.redis_client import get_redis_client
 
 # Create Blueprint for health check routes
 health_bp = Blueprint('health', __name__)
@@ -80,19 +81,22 @@ def check_database_connection():
 def check_redis_connection():
     """Check if Redis is accessible"""
     try:
-        # Import redis here to avoid import error if not used
-        import redis
-        
-        # Get Redis URL from app config
-        redis_url = current_app.config.get('REDIS_URL')
-        if not redis_url:
+        # Use our Redis client utility
+        redis_client = get_redis_client()
+        if not redis_client:
             return {'healthy': False, 'error': 'No Redis URL configured'}
         
-        # Create client and ping
-        r = redis.from_url(redis_url)
-        r.ping()
+        # Ping the Redis server
+        redis_client.ping()
         
-        return {'healthy': True}
+        # Get some basic info about Redis
+        info = redis_client.info(section='memory')
+        used_memory = info.get('used_memory_human', 'unknown')
+        
+        return {
+            'healthy': True,
+            'memory_usage': used_memory
+        }
     except Exception as e:
         logger.exception("Redis health check failed")
         return {'healthy': False, 'error': str(e)} 
