@@ -48,7 +48,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Created GraphQL endpoint with GraphiQL interface
   - Implemented proper error handling and validation
 
-## [1.1.0] - 2024-07-24
+## [1.1.0]
 
 ### Added
 
@@ -97,7 +97,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added globals.css with Tailwind directives
   - Configured PostCSS with postcss.config.js
 
-## [1.0.0] - 2024-07-21
+## [1.0.0]
 
 ### Added
 
