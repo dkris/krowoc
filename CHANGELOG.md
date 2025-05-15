@@ -25,6 +25,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Implemented authentication middleware for secure access
   - Added database utilities for querying execution data
 
+#### User Settings
+- Implemented comprehensive user settings management:
+  - Created settings page with tabbed interface for organization
+  - Added user profile settings for updating personal information
+  - Added preferences section for application preferences (theme, notifications)
+  - Integrated settings into the main navigation
+- Implemented provider API key management:
+  - Created secure storage for third-party API keys (OpenAI, Anthropic, Google)
+  - Added UI for adding, testing, and deleting provider keys
+  - Implemented backend API endpoints for provider key operations
+  - Created utility functions for secure key retrieval and validation
+  - Added key verification endpoint for testing provider connections
+  - Set up key usage tracking with last-used timestamps
+- Enhanced security measures:
+  - Implemented key hashing for secure storage
+  - Added row-level security policies for user data
+  - Created user-specific database constraints
+  - Limited exposed key information to prefixes only
+
 ## [1.2.0] - 2024-08-02
 
 ### Added
