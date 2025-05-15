@@ -2,6 +2,9 @@ from flask import Blueprint
 from .health import health_bp
 from .graphql import graphql_bp
 from .prompts import prompt_blueprint
+from .cache_example import cache_bp
+from .pubsub_example import pubsub_bp
+from .rate_limit_example import rate_limit_bp
 
 # Create a parent blueprint for all API routes
 api_bp = Blueprint('api', __name__, url_prefix='/api/v1')
@@ -19,6 +22,11 @@ def register_blueprints(app):
     
     # Register the prompts blueprint
     app.register_blueprint(prompt_blueprint)
+    
+    # Register Redis example blueprints
+    app.register_blueprint(cache_bp)
+    app.register_blueprint(pubsub_bp)
+    app.register_blueprint(rate_limit_bp)
     
     # Register the main API blueprint
     app.register_blueprint(api_bp)
