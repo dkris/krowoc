@@ -1,12 +1,34 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, Response, stream_with_context
 from pydantic import ValidationError
 from backend.models import Prompt, PromptState, User
 from backend.models.base import get_db
 from backend.graphql.validation.models import PromptValidator
+from backend.services.llm_service import llm_service, PromptRequest
 from sqlalchemy.exc import SQLAlchemyError
 import json
+import asyncio
+from functools import wraps
+import traceback
 
 prompt_blueprint = Blueprint('prompts', __name__, url_prefix='/api/prompts')
+
+# Helper function to run async functions in Flask routes
+def async_route(f):
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        try:
+            loop = asyncio.get_event_loop()
+        except RuntimeError:
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+        
+        try:
+            return loop.run_until_complete(f(*args, **kwargs))
+        except Exception as e:
+            traceback.print_exc()
+            return jsonify({'error': str(e)}), 500
+    
+    return wrapper
 
 @prompt_blueprint.route('', methods=['GET'])
 def get_prompts():
@@ -276,4 +298,129 @@ def update_prompt_state(prompt_id):
         return jsonify(result)
     except SQLAlchemyError as e:
         db.rollback()
-        return jsonify({'error': f'Database error: {str(e)}'}), 500 
+        return jsonify({'error': f'Database error: {str(e)}'}), 500
+
+@prompt_blueprint.route('/<int:prompt_id>/execute', methods=['POST'])
+@async_route
+async def execute_prompt(prompt_id):
+    """Execute a prompt with an LLM and return the result"""
+    data = request.get_json()
+    db = get_db()
+    
+    # Get the prompt from the database
+    prompt = db.query(Prompt).filter(Prompt.id == prompt_id).first()
+    if not prompt:
+        return jsonify({'error': f'Prompt with ID {prompt_id} not found'}), 404
+    
+    # Get execution parameters
+    model = data.get('model')
+    if not model:
+        return jsonify({'error': 'Model must be specified'}), 400
+    
+    # Check if model is in the prompt's whitelist (if any)
+    if prompt.model_whitelist and model not in prompt.model_whitelist:
+        return jsonify({'error': f'Model {model} is not in the prompt whitelist'}), 400
+    
+    # Prepare prompt request
+    try:
+        prompt_request = PromptRequest(
+            prompt=prompt.prompt_text,
+            model=model,
+            temperature=data.get('temperature', 0.7),
+            max_tokens=data.get('max_tokens', 1000),
+            stream=data.get('stream', False),
+            system_prompt=data.get('system_prompt'),
+            tools=data.get('tools')
+        )
+    except ValidationError as e:
+        return jsonify({'error': str(e)}), 400
+    
+    # Handle streaming response
+    if prompt_request.stream:
+        return Response(
+            stream_with_context(stream_llm_response(prompt_request)),
+            content_type='text/event-stream',
+            headers={
+                'Cache-Control': 'no-cache',
+                'X-Accel-Buffering': 'no'
+            }
+        )
+    
+    # Handle regular response
+    try:
+        response = await llm_service.execute_prompt(prompt_request)
+        return jsonify({
+            'prompt_id': prompt_id,
+            'model': model,
+            'response': response.text,
+            'usage': response.usage,
+            'finish_reason': response.finish_reason
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@prompt_blueprint.route('/execute', methods=['POST'])
+@async_route
+async def execute_arbitrary_prompt():
+    """Execute an arbitrary prompt with an LLM and return the result"""
+    data = request.get_json()
+    
+    # Validate input
+    if 'prompt' not in data:
+        return jsonify({'error': 'Prompt text must be provided'}), 400
+    
+    if 'model' not in data:
+        return jsonify({'error': 'Model must be specified'}), 400
+    
+    # Prepare prompt request
+    try:
+        prompt_request = PromptRequest(
+            prompt=data['prompt'],
+            model=data['model'],
+            temperature=data.get('temperature', 0.7),
+            max_tokens=data.get('max_tokens', 1000),
+            stream=data.get('stream', False),
+            system_prompt=data.get('system_prompt'),
+            tools=data.get('tools')
+        )
+    except ValidationError as e:
+        return jsonify({'error': str(e)}), 400
+    
+    # Handle streaming response
+    if prompt_request.stream:
+        return Response(
+            stream_with_context(stream_llm_response(prompt_request)),
+            content_type='text/event-stream',
+            headers={
+                'Cache-Control': 'no-cache',
+                'X-Accel-Buffering': 'no'
+            }
+        )
+    
+    # Handle regular response
+    try:
+        response = await llm_service.execute_prompt(prompt_request)
+        return jsonify({
+            'model': data['model'],
+            'response': response.text,
+            'usage': response.usage,
+            'finish_reason': response.finish_reason
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+async def stream_llm_response(prompt_request):
+    """Stream the LLM response as SSE events"""
+    try:
+        async for chunk in await llm_service.execute_prompt(prompt_request):
+            if chunk.text:
+                yield f"data: {json.dumps({'text': chunk.text})}\n\n"
+            
+            # If this is the last chunk, send finish info
+            if chunk.is_last:
+                yield f"data: {json.dumps({'finish_reason': chunk.finish_reason, 'usage': chunk.usage})}\n\n"
+                yield "event: done\ndata: null\n\n"
+    except Exception as e:
+        error_data = json.dumps({'error': str(e)})
+        yield f"event: error\ndata: {error_data}\n\n"
+        yield "event: done\ndata: null\n\n" 
