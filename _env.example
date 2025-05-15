@@ -4,6 +4,9 @@ DATABASE_URL=postgresql://krowoc:krowoc@localhost:5432/krowoc
 # Redis
 REDIS_URL=redis://localhost:6379/0
 
+# Application
+VERSION=1.2.0
+
 # API URLs
 BACKEND_URL=http://localhost:5000
 FRONTEND_URL=http://localhost:3000

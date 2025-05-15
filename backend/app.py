@@ -26,7 +26,7 @@ def create_app(test_config=None):
             SECRET_KEY=os.environ.get('SECRET_KEY', 'dev'),
             DATABASE_URL=os.environ.get('DATABASE_URL', 'postgresql://krowoc:krowoc@localhost:5432/krowoc'),
             REDIS_URL=os.environ.get('REDIS_URL', 'redis://localhost:6379/0'),
-            VERSION=os.environ.get('VERSION', '0.1.0'),
+            VERSION=os.environ.get('VERSION', '1.2.0'),
         )
     else:
         app.config.from_mapping(test_config)
