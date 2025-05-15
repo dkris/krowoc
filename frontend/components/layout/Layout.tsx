@@ -68,6 +68,16 @@ export default function Layout({ children, title = 'Krowoc' }: LayoutProps) {
                     >
                       Profile
                     </Link>
+                    <Link 
+                      href="/settings" 
+                      className={`text-sm font-medium ${
+                        router.pathname === '/settings' 
+                          ? 'text-blue-600' 
+                          : 'text-gray-500 hover:text-gray-900'
+                      }`}
+                    >
+                      Settings
+                    </Link>
                   </nav>
                 )}
               </div>

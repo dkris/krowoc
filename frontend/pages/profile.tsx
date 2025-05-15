@@ -1,5 +1,6 @@
 import { useAuth } from '../lib/AuthContext';
 import ProtectedRoute from '../components/auth/ProtectedRoute';
+import Link from 'next/link';
 
 export default function ProfilePage() {
   const { user } = useAuth();
@@ -9,7 +10,15 @@ export default function ProfilePage() {
       <div className="py-8">
         <div className="max-w-3xl mx-auto bg-white shadow rounded-lg overflow-hidden">
           <div className="px-6 py-8">
-            <h2 className="text-2xl font-bold mb-6">Profile</h2>
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold">Profile</h2>
+              <Link 
+                href="/settings" 
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              >
+                Manage Settings
+              </Link>
+            </div>
             
             {user && (
               <div className="space-y-4">
@@ -28,6 +37,24 @@ export default function ProfilePage() {
                     <p className="text-sm text-gray-500 mb-1">Full Name</p>
                     <p className="font-medium">
                       {user.user_metadata.full_name || 'Not provided'}
+                    </p>
+                  </div>
+                )}
+                
+                {user.user_metadata && user.user_metadata.company && (
+                  <div className="border-b pb-4">
+                    <p className="text-sm text-gray-500 mb-1">Company</p>
+                    <p className="font-medium">
+                      {user.user_metadata.company}
+                    </p>
+                  </div>
+                )}
+                
+                {user.user_metadata && user.user_metadata.job_title && (
+                  <div className="border-b pb-4">
+                    <p className="text-sm text-gray-500 mb-1">Job Title</p>
+                    <p className="font-medium">
+                      {user.user_metadata.job_title}
                     </p>
                   </div>
                 )}
