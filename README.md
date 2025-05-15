@@ -11,6 +11,20 @@ Krowoc is a platform for managing and executing prompts across multiple LLM prov
 - Browser extension for easy prompt capture
 - Robust and scalable architecture
 
+## Features
+
+### Prompt Management
+- Create, edit, and organize prompts with tags and descriptions
+- Version control for prompts
+- Access controls and sharing options
+
+### LLM Integration
+- Execute prompts with any supported LLM model
+- Model whitelisting for specific prompts
+- Streaming responses for real-time interactions
+- Support for system prompts and tool calling
+- Provider-agnostic API through `aisuite`
+
 ## Technology Stack
 
 - **Frontend:** NextJS (React + TypeScript), Tailwind CSS, VisActor
@@ -33,6 +47,18 @@ krowoc/
 ## Development Setup
 
 For detailed setup instructions, see [Getting Started Guide](docs/development/getting-started.md).
+
+### LLM API Keys
+To use the LLM integration features, you'll need to set up API keys for your chosen providers:
+1. Copy `_env.example` to `.env`
+2. Add your API keys for supported providers
+
+## API Endpoints
+
+### LLM Execution
+- `POST /api/prompts/execute` - Execute an arbitrary prompt with any supported model
+- `POST /api/prompts/<id>/execute` - Execute a stored prompt with specified parameters
+- Both endpoints support streaming responses using Server-Sent Events
 
 ## Git Workflow
 

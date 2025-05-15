@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+#### LLM Integration
+- Implemented `aisuite` library integration for unified LLM access
+- Created LLM service with comprehensive provider/model support:
+  - Added support for OpenAI, Anthropic, and Google models
+  - Implemented model validation and whitelisting
+  - Created utility functions for provider/model management
+- Added new prompt execution endpoints:
+  - `/api/prompts/execute` for executing arbitrary prompts
+  - `/api/prompts/<id>/execute` for executing stored prompts
+- Implemented streaming response handling with Server-Sent Events (SSE)
+- Added support for system prompts and tools
+- Created comprehensive documentation for LLM integration
+- Updated environment configuration with necessary API keys
+
 #### Frontend (Next.js)
 - Implemented complete prompt management UI:
   - Created PromptEditor component for creating and editing prompts
