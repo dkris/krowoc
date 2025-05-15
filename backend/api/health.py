@@ -29,7 +29,7 @@ def detailed_health():
     health_data = {
         'status': 'ok',
         'timestamp': datetime.datetime.utcnow().isoformat(),
-        'version': os.environ.get('APP_VERSION', 'development'),
+        'version': os.environ.get('APP_VERSION', current_app.config.get('VERSION', '1.2.0')),
         'system': {
             'platform': platform.platform(),
             'python_version': platform.python_version(),
@@ -47,7 +47,7 @@ def deep_health():
     health_data = {
         'status': 'ok',
         'timestamp': datetime.datetime.utcnow().isoformat(),
-        'version': os.environ.get('APP_VERSION', 'development'),
+        'version': os.environ.get('APP_VERSION', current_app.config.get('VERSION', '1.2.0')),
         'checks': {
             'database': check_database_connection(),
             'redis': check_redis_connection(),

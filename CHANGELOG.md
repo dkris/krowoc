@@ -7,7 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.0] - 2024-08-02
+
 ### Added
+
+#### Backend (Flask)
+- Implemented comprehensive Redis integration:
+  - Created modular Redis client utility with singleton pattern
+  - Added function-level caching with customizable TTLs
+  - Implemented cache invalidation by pattern matching
+  - Developed Redis Pub/Sub for event-based communication
+  - Added rate limiting for API protection with customizable limits
+  - Created example API endpoints demonstrating Redis features
+  - Added health check integration for Redis monitoring
+  - Created detailed documentation for Redis features
 
 #### LLM Integration
 - Implemented `aisuite` library integration for unified LLM access
@@ -49,7 +62,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Created GraphQL endpoint with GraphiQL interface
   - Implemented proper error handling and validation
 
-## [1.1.0] - 2024-07-24
+## [1.1.0]
 
 ### Added
 
@@ -98,7 +111,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added globals.css with Tailwind directives
   - Configured PostCSS with postcss.config.js
 
-## [1.0.0] - 2024-07-21
+## [1.0.0]
 
 ### Added
 
