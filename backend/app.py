@@ -10,6 +10,7 @@ from loguru import logger
 
 # Import API module for blueprint registration
 from backend.api import register_blueprints
+from backend.utils.db import init_app as init_db
 
 # Track application start time for uptime calculation
 APP_START_TIME = time.time()
@@ -24,12 +25,15 @@ def create_app(test_config=None):
     if test_config is None:
         app.config.from_mapping(
             SECRET_KEY=os.environ.get('SECRET_KEY', 'dev'),
-            DATABASE_URL=os.environ.get('DATABASE_URL', 'postgresql://krowoc:krowoc@localhost:5432/krowoc'),
+            DATABASE_URI=os.environ.get('DATABASE_URL', 'postgresql://krowoc:krowoc@localhost:5432/krowoc'),
             REDIS_URL=os.environ.get('REDIS_URL', 'redis://localhost:6379/0'),
             VERSION=os.environ.get('VERSION', '1.2.0'),
         )
     else:
         app.config.from_mapping(test_config)
+    
+    # Initialize database
+    init_db(app)
     
     # Register routes
     @app.route('/health')
@@ -64,7 +68,7 @@ def create_app(test_config=None):
         try:
             # In a real implementation, we would attempt to connect to the database
             # For now, with test config we'll simulate a failure
-            db_healthy = 'memory' not in str(app.config.get('DATABASE_URL', ''))
+            db_healthy = 'memory' not in str(app.config.get('DATABASE_URI', ''))
         except Exception as e:
             logger.error(f"Database health check failed: {str(e)}")
         
