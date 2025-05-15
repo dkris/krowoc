@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+#### Frontend (Next.js)
+- Implemented comprehensive user dashboard:
+  - Created dashboard page with usage metrics overview
+  - Added visualization components for data presentation
+  - Implemented time range selection for daily metrics
+  - Added support for mock data through URL flags
+  - Created responsive layout for desktop and mobile views
+
+#### Backend (Flask)
+- Created usage metrics API:
+  - Implemented `/api/metrics/summary` endpoint for overall usage metrics
+  - Added `/api/metrics/daily` endpoint for daily usage data
+  - Created `/api/metrics/cost_breakdown` endpoint for provider cost analysis
+  - Implemented authentication middleware for secure access
+  - Added database utilities for querying execution data
+
 ## [1.2.0] - 2024-08-02
 
 ### Added
