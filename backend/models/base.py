@@ -15,6 +15,13 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 # Create declarative base
 Base = declarative_base()
 
+# Allow dynamic engine/session override for testing
+
+def set_engine(new_engine):
+    global engine, SessionLocal
+    engine = new_engine
+    SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
 # Helper function to get database session
 def get_db():
     db = SessionLocal()

@@ -1,14 +1,14 @@
 from flask import Blueprint, request, jsonify, Response, stream_with_context
-from pydantic import ValidationError
+from pydantic import ValidationError, BaseModel, Field
 from backend.models import Prompt, PromptState, User
 from backend.models.base import get_db
-from backend.graphql.validation.models import PromptValidator
 from backend.services.llm_service import llm_service, PromptRequest
 from sqlalchemy.exc import SQLAlchemyError
 import json
 import asyncio
 from functools import wraps
 import traceback
+from typing import List, Optional
 
 prompt_blueprint = Blueprint('prompts', __name__, url_prefix='/api/prompts')
 
@@ -30,10 +30,29 @@ def async_route(f):
     
     return wrapper
 
+# Pydantic models for validation
+class PromptCreateModel(BaseModel):
+    title: str = Field(..., min_length=3)
+    description: Optional[str] = None
+    prompt_text: str = Field(..., min_length=10)
+    tags: Optional[List[str]] = None
+    model_whitelist: Optional[List[str]] = None
+    user_id: int
+    state: Optional[str] = 'draft'
+
+class PromptUpdateModel(BaseModel):
+    title: str = Field(..., min_length=3)
+    description: Optional[str] = None
+    prompt_text: str = Field(..., min_length=10)
+    tags: Optional[List[str]] = None
+    model_whitelist: Optional[List[str]] = None
+    user_id: int
+    state: Optional[str] = None
+
 @prompt_blueprint.route('', methods=['GET'])
 def get_prompts():
     """Get all prompts with optional filtering"""
-    db = get_db()
+    db = next(get_db())
     query = db.query(Prompt)
     
     # Apply filters if provided
@@ -90,7 +109,7 @@ def get_prompts():
 @prompt_blueprint.route('/<int:prompt_id>', methods=['GET'])
 def get_prompt(prompt_id):
     """Get a single prompt by ID"""
-    db = get_db()
+    db = next(get_db())
     prompt = db.query(Prompt).filter(Prompt.id == prompt_id).first()
     
     if not prompt:
@@ -115,48 +134,35 @@ def get_prompt(prompt_id):
 def create_prompt():
     """Create a new prompt"""
     data = request.get_json()
-    db = get_db()
-    
+    db = next(get_db())
     # Validate input
     try:
-        # Set default state if not provided
-        state = data.get('state', 'draft')
-        validated_data = PromptValidator(
-            title=data.get('title'),
-            description=data.get('description'),
-            prompt_text=data.get('prompt_text'),
-            tags=data.get('tags'),
-            model_whitelist=data.get('model_whitelist'),
-            user_id=data.get('user_id'),
-            state=state
-        )
+        validated = PromptCreateModel(**data)
     except ValidationError as e:
-        return jsonify({'error': str(e)}), 400
-    
+        return jsonify({'error': e.errors()}), 400
     # Check if user exists
-    user = db.query(User).filter(User.id == validated_data.user_id).first()
+    user_id = validated.user_id
+    user = db.query(User).filter(User.id == user_id).first()
     if not user:
-        return jsonify({'error': f'User with ID {validated_data.user_id} not found'}), 404
-    
+        return jsonify({'error': f'User with ID {user_id} not found'}), 404
     # Create prompt with state enum
-    state_enum = PromptState[validated_data.state.upper()]
-    
     try:
-        # Create new prompt
+        state_enum = PromptState[validated.state.upper()]
+    except KeyError:
+        return jsonify({'error': f'Invalid state: {validated.state}'}), 400
+    try:
         prompt = Prompt(
-            title=validated_data.title,
-            description=validated_data.description,
-            prompt_text=validated_data.prompt_text,
-            tags=validated_data.tags,
-            model_whitelist=validated_data.model_whitelist,
-            user_id=validated_data.user_id,
+            title=validated.title,
+            description=validated.description,
+            prompt_text=validated.prompt_text,
+            tags=validated.tags,
+            model_whitelist=validated.model_whitelist,
+            user_id=validated.user_id,
             state=state_enum
         )
-        
         db.add(prompt)
         db.commit()
         db.refresh(prompt)
-        
         result = {
             'id': prompt.id,
             'title': prompt.title,
@@ -169,7 +175,6 @@ def create_prompt():
             'created_at': prompt.created_at.isoformat() if prompt.created_at else None,
             'updated_at': prompt.updated_at.isoformat() if prompt.updated_at else None
         }
-        
         return jsonify(result), 201
     except SQLAlchemyError as e:
         db.rollback()
@@ -179,51 +184,38 @@ def create_prompt():
 def update_prompt(prompt_id):
     """Update an existing prompt"""
     data = request.get_json()
-    db = get_db()
-    
+    db = next(get_db())
     # Find prompt
     prompt = db.query(Prompt).filter(Prompt.id == prompt_id).first()
     if not prompt:
         return jsonify({'error': f'Prompt with ID {prompt_id} not found'}), 404
-    
     # Validate input
     try:
-        # Use existing values for optional fields if not provided
-        state = data.get('state', prompt.state.name.lower())
-        validated_data = PromptValidator(
-            title=data.get('title', prompt.title),
-            description=data.get('description', prompt.description),
-            prompt_text=data.get('prompt_text', prompt.prompt_text),
-            tags=data.get('tags', prompt.tags),
-            model_whitelist=data.get('model_whitelist', prompt.model_whitelist),
-            user_id=data.get('user_id', prompt.user_id),
-            state=state
-        )
+        validated = PromptUpdateModel(**data)
     except ValidationError as e:
-        return jsonify({'error': str(e)}), 400
-    
+        return jsonify({'error': e.errors()}), 400
     # Check if user exists if user_id is changing
-    if validated_data.user_id != prompt.user_id:
-        user = db.query(User).filter(User.id == validated_data.user_id).first()
+    user_id = validated.user_id
+    if user_id != prompt.user_id:
+        user = db.query(User).filter(User.id == user_id).first()
         if not user:
-            return jsonify({'error': f'User with ID {validated_data.user_id} not found'}), 404
-    
+            return jsonify({'error': f'User with ID {user_id} not found'}), 404
     # Convert state string to enum
-    state_enum = PromptState[validated_data.state.upper()]
-    
+    state_str = validated.state or prompt.state.name.lower()
     try:
-        # Update prompt fields
-        prompt.title = validated_data.title
-        prompt.description = validated_data.description
-        prompt.prompt_text = validated_data.prompt_text
-        prompt.tags = validated_data.tags
-        prompt.model_whitelist = validated_data.model_whitelist
-        prompt.user_id = validated_data.user_id
+        state_enum = PromptState[state_str.upper()]
+    except KeyError:
+        return jsonify({'error': f'Invalid state: {state_str}'}), 400
+    try:
+        prompt.title = validated.title
+        prompt.description = validated.description
+        prompt.prompt_text = validated.prompt_text
+        prompt.tags = validated.tags
+        prompt.model_whitelist = validated.model_whitelist
+        prompt.user_id = validated.user_id
         prompt.state = state_enum
-        
         db.commit()
         db.refresh(prompt)
-        
         result = {
             'id': prompt.id,
             'title': prompt.title,
@@ -236,7 +228,6 @@ def update_prompt(prompt_id):
             'created_at': prompt.created_at.isoformat() if prompt.created_at else None,
             'updated_at': prompt.updated_at.isoformat() if prompt.updated_at else None
         }
-        
         return jsonify(result)
     except SQLAlchemyError as e:
         db.rollback()
@@ -245,7 +236,7 @@ def update_prompt(prompt_id):
 @prompt_blueprint.route('/<int:prompt_id>', methods=['DELETE'])
 def delete_prompt(prompt_id):
     """Delete a prompt"""
-    db = get_db()
+    db = next(get_db())
     
     # Find prompt
     prompt = db.query(Prompt).filter(Prompt.id == prompt_id).first()
@@ -266,7 +257,7 @@ def delete_prompt(prompt_id):
 def update_prompt_state(prompt_id):
     """Update prompt state only"""
     data = request.get_json()
-    db = get_db()
+    db = next(get_db())
     
     # Validate state
     state = data.get('state')
@@ -305,23 +296,15 @@ def update_prompt_state(prompt_id):
 async def execute_prompt(prompt_id):
     """Execute a prompt with an LLM and return the result"""
     data = request.get_json()
-    db = get_db()
-    
-    # Get the prompt from the database
+    db = next(get_db())
     prompt = db.query(Prompt).filter(Prompt.id == prompt_id).first()
     if not prompt:
         return jsonify({'error': f'Prompt with ID {prompt_id} not found'}), 404
-    
-    # Get execution parameters
     model = data.get('model')
     if not model:
         return jsonify({'error': 'Model must be specified'}), 400
-    
-    # Check if model is in the prompt's whitelist (if any)
     if prompt.model_whitelist and model not in prompt.model_whitelist:
         return jsonify({'error': f'Model {model} is not in the prompt whitelist'}), 400
-    
-    # Prepare prompt request
     try:
         prompt_request = PromptRequest(
             prompt=prompt.prompt_text,
@@ -334,8 +317,6 @@ async def execute_prompt(prompt_id):
         )
     except ValidationError as e:
         return jsonify({'error': str(e)}), 400
-    
-    # Handle streaming response
     if prompt_request.stream:
         return Response(
             stream_with_context(stream_llm_response(prompt_request)),
@@ -345,16 +326,12 @@ async def execute_prompt(prompt_id):
                 'X-Accel-Buffering': 'no'
             }
         )
-    
-    # Handle regular response
     try:
         response = await llm_service.execute_prompt(prompt_request)
         return jsonify({
             'prompt_id': prompt_id,
             'model': model,
-            'response': response.text,
-            'usage': response.usage,
-            'finish_reason': response.finish_reason
+            'response': response
         })
     except Exception as e:
         return jsonify({'error': str(e)}), 500
@@ -364,15 +341,10 @@ async def execute_prompt(prompt_id):
 async def execute_arbitrary_prompt():
     """Execute an arbitrary prompt with an LLM and return the result"""
     data = request.get_json()
-    
-    # Validate input
     if 'prompt' not in data:
         return jsonify({'error': 'Prompt text must be provided'}), 400
-    
     if 'model' not in data:
         return jsonify({'error': 'Model must be specified'}), 400
-    
-    # Prepare prompt request
     try:
         prompt_request = PromptRequest(
             prompt=data['prompt'],
@@ -385,8 +357,6 @@ async def execute_arbitrary_prompt():
         )
     except ValidationError as e:
         return jsonify({'error': str(e)}), 400
-    
-    # Handle streaming response
     if prompt_request.stream:
         return Response(
             stream_with_context(stream_llm_response(prompt_request)),
@@ -396,30 +366,22 @@ async def execute_arbitrary_prompt():
                 'X-Accel-Buffering': 'no'
             }
         )
-    
-    # Handle regular response
     try:
         response = await llm_service.execute_prompt(prompt_request)
         return jsonify({
             'model': data['model'],
-            'response': response.text,
-            'usage': response.usage,
-            'finish_reason': response.finish_reason
+            'response': response
         })
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
 async def stream_llm_response(prompt_request):
-    """Stream the LLM response as SSE events"""
+    """Stream the LLM response as SSE events using LangChain"""
     try:
         async for chunk in await llm_service.execute_prompt(prompt_request):
-            if chunk.text:
-                yield f"data: {json.dumps({'text': chunk.text})}\n\n"
-            
-            # If this is the last chunk, send finish info
-            if chunk.is_last:
-                yield f"data: {json.dumps({'finish_reason': chunk.finish_reason, 'usage': chunk.usage})}\n\n"
-                yield "event: done\ndata: null\n\n"
+            if chunk:
+                yield f"data: {json.dumps({'text': chunk})}\n\n"
+        yield "event: done\ndata: null\n\n"
     except Exception as e:
         error_data = json.dumps({'error': str(e)})
         yield f"event: error\ndata: {error_data}\n\n"

@@ -5,7 +5,7 @@ Krowoc is a platform for managing and executing prompts across multiple LLM prov
 ## Overview
 
 - User-friendly web application for creating, organizing, and executing prompts
-- Integration with multiple LLM providers (OpenAI, Anthropic Claude, Google Gemini) via the `aisuite` library
+- Integration with multiple LLM providers (OpenAI, Anthropic Claude, Google Gemini) via the `langchain` library
 - Bring your own API keys for LLM providers
 - Dashboard with key usage metrics
 - Browser extension for easy prompt capture
@@ -23,7 +23,7 @@ Krowoc is a platform for managing and executing prompts across multiple LLM prov
 - Model whitelisting for specific prompts
 - Streaming responses for real-time interactions
 - Support for system prompts and tool calling
-- Provider-agnostic API through `aisuite`
+- Provider-agnostic API through `langchain`
 
 ## Technology Stack
 
@@ -31,7 +31,7 @@ Krowoc is a platform for managing and executing prompts across multiple LLM prov
 - **Backend:** Flask (Python), Prefect for orchestration
 - **Database:** Postgres (unified data store)
 - **Messaging & Caching:** Redis
-- **LLM Integration:** [`aisuite`](https://github.com/andrewyng/aisuite)
+- **LLM Integration:** [`langchain`](https://github.com/langchain-ai/langchain)
 - **Observability:** PostHog, Python `loguru` for logging
 
 ## Project Structure
@@ -49,9 +49,9 @@ krowoc/
 For detailed setup instructions, see [Getting Started Guide](docs/development/getting-started.md).
 
 ### LLM API Keys
-To use the LLM integration features, you'll need to set up API keys for your chosen providers:
+To use the LLM integration features, you'll need to set up API keys for your chosen providers as required by LangChain:
 1. Copy `_env.example` to `.env`
-2. Add your API keys for supported providers
+2. Add your API keys for supported providers (`OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `GOOGLE_API_KEY`)
 
 ## API Endpoints
 
@@ -86,3 +86,5 @@ Please read our [Contributing Guidelines](CONTRIBUTING.md) for details on our co
 ## License
 
 Coming soon... 
+
+All prompt execution endpoints now use LangChain for LLM access. 

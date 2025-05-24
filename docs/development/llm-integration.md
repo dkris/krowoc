@@ -4,7 +4,7 @@ This guide explains how to use the LLM integration features in Krowoc.
 
 ## Overview
 
-Krowoc provides a unified API for interacting with multiple LLM providers through the `aisuite` library. This allows you to:
+Krowoc provides a unified API for interacting with multiple LLM providers through the `langchain` library. This allows you to:
 
 1. Execute prompts with any supported model
 2. Stream responses in real-time
@@ -166,9 +166,7 @@ To use the LLM integration, you need to set up API keys for your chosen provider
    ```
    OPENAI_API_KEY=your_openai_api_key
    ANTHROPIC_API_KEY=your_anthropic_api_key
-   GOOGLE_AI_API_KEY=your_google_ai_api_key
-   AISUITE_API_KEY=your_aisuite_api_key
-   AISUITE_ORG_ID=your_aisuite_org_id
+   GOOGLE_API_KEY=your_google_api_key
    ```
 
 ## Supported Models
@@ -190,4 +188,6 @@ The following models are currently supported:
 ### Google
 - gemini-pro
 - gemini-pro-vision
-- gemini-ultra 
+- gemini-ultra
+
+# LangChain enables advanced features such as prompt templates, chains, memory, and agents. See LangChain documentation for more details. 

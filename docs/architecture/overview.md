@@ -85,8 +85,9 @@ Krowoc follows a modern, modular architecture with separate backend and frontend
 
 ### LLM Integration
 
-- Using aisuite library for unified interface to multiple LLM providers
-- Streaming responses for better user experience
+- Using LangChain for a unified interface to multiple LLM providers
+- Supports advanced features such as prompt templates, chains, memory, and agents
+- Streaming and synchronous prompt execution via LangChain's APIs
 - Prompt versioning for reproducibility
 
 ### Error Handling
@@ -97,7 +98,7 @@ Krowoc follows a modern, modular architecture with separate backend and frontend
 
 ## Security Considerations
 
-- API keys are stored securely with hashing
+- API keys are stored securely with hashing (e.g., `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `GOOGLE_API_KEY`)
 - All endpoints require authentication
 - CSRF protection for all state-changing operations
 - Rate limiting to prevent abuse

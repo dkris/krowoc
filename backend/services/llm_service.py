@@ -1,14 +1,17 @@
 from typing import Dict, List, Optional, Set, Union, AsyncGenerator, Any
 import logging
 import os
-from aisuite import AsyncClient, CompletionOptions, LLMResponse, ResponseFormat
-from aisuite.streaming import ChunkResponse
 from pydantic import BaseModel
+
+# LangChain imports
+from langchain_openai import ChatOpenAI
+from langchain_anthropic import ChatAnthropic
+from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
 
 logger = logging.getLogger(__name__)
 
-# Supported LLM providers and models
-# This should be expanded with actual models and providers from aisuite
+# Supported LLM providers and models (as per LangChain wrappers)
 SUPPORTED_PROVIDERS = {
     "openai": {
         "models": {
@@ -47,11 +50,7 @@ class PromptRequest(BaseModel):
 class LLMService:
     def __init__(self):
         self.providers = SUPPORTED_PROVIDERS
-        self.client = AsyncClient(
-            api_key=os.environ.get("AISUITE_API_KEY"),
-            organization_id=os.environ.get("AISUITE_ORG_ID", None)
-        )
-        logger.info(f"LLMService initialized with {len(self.providers)} providers")
+        logger.info(f"LLMService initialized with {len(self.providers)} providers (LangChain)")
     
     def get_supported_providers(self) -> List[str]:
         """Get list of supported LLM providers"""
@@ -122,53 +121,67 @@ class LLMService:
             
         return valid_models
     
-    async def execute_prompt(self, request: PromptRequest) -> Union[LLMResponse, AsyncGenerator[ChunkResponse, None]]:
+    async def execute_prompt(self, request: PromptRequest) -> Union[str, AsyncGenerator[str, None]]:
         """
-        Execute a prompt with the specified model
-        
-        Args:
-            request: The prompt request containing prompt text and parameters
-            
-        Returns:
-            The LLM response or a stream of chunks if streaming is enabled
+        Execute a prompt with the specified model using LangChain wrappers.
+        Supports streaming and non-streaming responses.
         """
-        # Extract provider and model name
         if ":" not in request.model:
             raise ValueError(f"Invalid model format: {request.model}. Expected format: provider:model")
-        
         provider, model = request.model.split(":", 1)
-        
-        # Validate provider and model
         if provider not in self.providers:
             raise ValueError(f"Unsupported provider: {provider}")
-        
         if model not in self.providers[provider]["models"]:
             raise ValueError(f"Unsupported model for {provider}: {model}")
-        
-        # Prepare completion options
-        options = CompletionOptions(
-            model=model,
-            temperature=request.temperature,
-            max_tokens=request.max_tokens,
-            stream=request.stream,
-            provider=provider,
-        )
-        
-        # Execute prompt
-        if request.stream:
-            return self.client.complete_streaming(
-                prompt=request.prompt,
-                system_prompt=request.system_prompt,
-                tools=request.tools,
-                options=options
+
+        # Prepare LangChain LLM instance
+        if provider == "openai":
+            llm = ChatOpenAI(
+                model=model,
+                temperature=request.temperature,
+                max_tokens=request.max_tokens,
+                streaming=request.stream,
+                openai_api_key=os.environ.get("OPENAI_API_KEY"),
+            )
+        elif provider == "anthropic":
+            llm = ChatAnthropic(
+                model=model,
+                temperature=request.temperature,
+                max_tokens=request.max_tokens,
+                streaming=request.stream,
+                anthropic_api_key=os.environ.get("ANTHROPIC_API_KEY"),
+            )
+        elif provider == "google":
+            llm = ChatGoogleGenerativeAI(
+                model=model,
+                temperature=request.temperature,
+                max_output_tokens=request.max_tokens,
+                streaming=request.stream,
+                google_api_key=os.environ.get("GOOGLE_API_KEY"),
             )
         else:
-            return await self.client.complete(
-                prompt=request.prompt,
-                system_prompt=request.system_prompt,
-                tools=request.tools,
-                options=options
-            )
+            raise ValueError(f"Unsupported provider: {provider}")
+
+        # Prepare messages
+        messages = []
+        if request.system_prompt:
+            messages.append(SystemMessage(content=request.system_prompt))
+        messages.append(HumanMessage(content=request.prompt))
+
+        # Streaming
+        if request.stream:
+            async def stream_response():
+                async for chunk in llm.astream(messages):
+                    if hasattr(chunk, "content"):
+                        yield chunk.content
+                    else:
+                        yield str(chunk)
+            return stream_response()
+        # Non-streaming
+        response = await llm.ainvoke(messages)
+        if hasattr(response, "content"):
+            return response.content
+        return str(response)
 
 # Create a singleton instance
 llm_service = LLMService() 

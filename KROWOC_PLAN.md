@@ -9,7 +9,7 @@ _This section defines what the project aims to build, its core scope, and the hi
 
 #### 1. Project Goals
 - Develop a user-friendly web application for creating, organizing, and executing prompts.
-- Integrate with multiple LLM providers (OpenAI, Anthropic Claude, Google Gemini) via the `aisuite` library.
+- Integrate with multiple LLM providers (OpenAI, Anthropic Claude, Google Gemini) via the `langchain` library.
 - Enable users to bring their own API keys for LLM providers.
 - Provide a landing page dashboard with key usage metrics.
 - Implement a browser extension for easy prompt capture.
@@ -49,7 +49,7 @@ _Tracks execution scope and maps individual tasks to technical and business deli
 | Logging & Debugging     | Structured logs with `loguru`                                        | Debuggable production logs                      |
 | Frontend (NextJS)       | UI components, state management, PromptEditorForm integration in Home & Prompts tabs, PostHog session replay + event analytics | Functional and styled UI with observability |
 | Frontend Testing        | Unit + E2E with Jest + Playwright                                    | CI-ready test suite                             |
-| Prompt Execution        | Streaming responses, `aisuite` SDK use                               | LLM response UX complete                        |
+| Prompt Execution        | Streaming responses, `langchain` SDK use                               | LLM response UX complete                        |
 | Credential Management   | Secure storage + retrieval of API keys                              | Settings page and backend endpoints             |
 | Dashboard & Metrics     | Usage charts via VisActor                                            | Functional analytics dashboard                  |
 | Deployment              | Dockerized services deployed to Vercel/Render, Postgres provisioned via Supabase/Railway | Live MVP + deployment docs                      |
@@ -73,7 +73,7 @@ _Outlines development phases with estimated timeframes and dependencies._
 - Backend API implementation
 - Frontend UI components and views
 - Prompt management functionality
-- LLM integration via aisuite
+- LLM integration via langchain
 - User authentication flows
 - Basic analytics tracking
 
@@ -154,7 +154,7 @@ _Outlines the architecture, security posture, and platform infrastructure guidin
 - **Frontend:** NextJS (React + TypeScript), Tailwind CSS, VisActor
 - **Backend:** Flask (Python), Prefect for orchestration
 - **Database:** Postgres (unified data store for user, prompts, and execution data)
-- **LLM Integration:** [`aisuite`](https://github.com/andrewyng/aisuite)
+- **LLM Integration:** [`langchain`](https://github.com/langchain-ai/langchain)
 - **Logging:** Python `loguru` for structured and streamlined logging in Flask (for relational data)
 
 #### System Architecture
@@ -230,7 +230,7 @@ _Defines how the team will set up, build, test, and deploy both backend and fron
   - Update prompt creation and update API endpoints to accept and validate new fields
   - Introduce prompt lifecycle states: Draft → Published → Archived
 - **LLM Integration**
-  - Integrate with `aisuite`
+  - Integrate with `langchain`
   - Implement streaming LLM responses
   - Define retry strategy for failed prompt executions (e.g., 2 retries with exponential backoff)
   - Set timeout thresholds (e.g., 30s max response window for LLMs)
