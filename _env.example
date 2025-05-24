@@ -14,9 +14,10 @@ FRONTEND_URL=http://localhost:3000
 ORCHESTRATION_URL=http://localhost:4200
 
 # LLM Providers (replace with your own API keys)
+# Example environment variables for LangChain LLM integration
 OPENAI_API_KEY=your_openai_api_key
 ANTHROPIC_API_KEY=your_anthropic_api_key
-GOOGLE_AI_API_KEY=your_google_ai_api_key
+GOOGLE_API_KEY=your_google_api_key
 
 # Analytics
 # Backend PostHog settings

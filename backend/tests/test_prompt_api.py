@@ -2,7 +2,8 @@ import pytest
 import json
 from backend.app import create_app
 from backend.models import User, Prompt, PromptState
-from backend.models.base import get_db
+from backend.models.base import get_db, set_engine
+from sqlalchemy import create_engine
 
 @pytest.fixture
 def app():
@@ -11,13 +12,17 @@ def app():
         'DATABASE_URL': 'sqlite:///:memory:'
     })
     
+    # Create a test engine and set it for all models
+    test_engine = create_engine('sqlite:///:memory:')
+    set_engine(test_engine)
+    
     # Create tables
-    from backend.models.base import Base, engine
-    Base.metadata.create_all(bind=engine)
+    from backend.models.base import Base
+    Base.metadata.create_all(bind=test_engine)
     
     # Create test data
     with app.app_context():
-        db = get_db()
+        db = next(get_db())
         
         # Create a test user
         user = User(
@@ -67,7 +72,7 @@ def app():
     
     # Clean up
     with app.app_context():
-        db = get_db()
+        db = next(get_db())
         db.execute('DROP TABLE IF EXISTS prompts')
         db.execute('DROP TABLE IF EXISTS users')
         db.commit()
@@ -108,7 +113,7 @@ def test_get_prompt_by_id(client):
 def test_create_prompt(client, app):
     """Test creating a new prompt"""
     with app.app_context():
-        db = get_db()
+        db = next(get_db())
         user = db.query(User).first()
     
     new_prompt = {
@@ -147,7 +152,7 @@ def test_update_prompt(client, app):
     prompt_id = prompts[0]['id']
     
     with app.app_context():
-        db = get_db()
+        db = next(get_db())
         user = db.query(User).first()
     
     updated_data = {
@@ -249,7 +254,7 @@ def test_filter_prompts_by_tag(client):
 def test_prompt_validation(client, app):
     """Test prompt validation"""
     with app.app_context():
-        db = get_db()
+        db = next(get_db())
         user = db.query(User).first()
     
     # Test missing required fields

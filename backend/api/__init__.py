@@ -1,6 +1,5 @@
 from flask import Blueprint
 from .health import health_bp
-from .graphql import graphql_bp
 from .prompts import prompt_blueprint
 from .cache_example import cache_bp
 from .pubsub_example import pubsub_bp
@@ -18,9 +17,6 @@ def register_blueprints(app):
     """Register all blueprints with the Flask app"""
     # Register the health blueprint without prefix (for standard health check endpoints)
     app.register_blueprint(health_bp)
-    
-    # Register the GraphQL blueprint
-    app.register_blueprint(graphql_bp, url_prefix='/api/v1')
     
     # Register the prompts blueprint
     app.register_blueprint(prompt_blueprint)

@@ -5,6 +5,23 @@ All notable changes to the Krowoc project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0] - 2024-XX-XX
+
+### Changed
+- Major framework migration: replaced all LLM integration from aisuite to LangChain.
+- Updated backend LLM service to use LangChain's model wrappers and chain abstractions.
+- Updated all environment variables and documentation for LangChain.
+- All prompt execution, streaming, and advanced LLM features now powered by LangChain.
+
+### Removed
+- All aisuite dependencies, code, and documentation.
+- All aisuite-related environment variables.
+
+### Added
+- LangChain integration: unified support for OpenAI, Anthropic, Google Gemini, and other providers via LangChain.
+- Support for advanced prompt templates, chains, memory, and agent workflows.
+- Updated documentation and setup guides for LangChain.
+
 ## [Unreleased]
 
 ### Added

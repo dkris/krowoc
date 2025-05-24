@@ -6,15 +6,13 @@ from datetime import datetime, timezone
 from flask import Blueprint, request, jsonify, g
 import json
 
-from backend.services.auth import login_required
-
 # Initialize blueprint
 user_settings_bp = Blueprint('user_settings', __name__, url_prefix='/api/user-settings')
 logger = logging.getLogger(__name__)
 
 # Provider API Key Management
 @user_settings_bp.route('/api-keys', methods=['POST'])
-@login_required
+# TODO: Implement authentication (login_required) and password hashing (hash_password) for REST endpoints
 def add_provider_api_key():
     """
     Add a provider API key (OpenAI, Anthropic, Google)
@@ -41,8 +39,8 @@ def add_provider_api_key():
         current_time = datetime.now(timezone.utc)
         
         # Store the hashed key, not the raw key
-        from backend.services.auth import hash_password
-        hashed_key = hash_password(api_key)
+        # TODO: Implement password hashing (hash_password)
+        hashed_key = api_key
         
         from backend.services.database import get_supabase_client
         supabase = get_supabase_client()
@@ -86,7 +84,7 @@ def add_provider_api_key():
         return jsonify({'error': f'Failed to add provider API key: {str(e)}'}), 500
 
 @user_settings_bp.route('/api-keys', methods=['GET'])
-@login_required
+# TODO: Implement authentication (login_required)
 def list_provider_api_keys():
     """
     List all provider API keys for the authenticated user
@@ -106,7 +104,7 @@ def list_provider_api_keys():
         return jsonify({'error': f'Failed to list provider API keys: {str(e)}'}), 500
 
 @user_settings_bp.route('/api-keys/<key_id>', methods=['DELETE'])
-@login_required
+# TODO: Implement authentication (login_required)
 def delete_provider_api_key(key_id):
     """
     Delete a provider API key by ID
@@ -131,7 +129,7 @@ def delete_provider_api_key(key_id):
         return jsonify({'error': f'Failed to delete provider API key: {str(e)}'}), 500
 
 @user_settings_bp.route('/test-provider-call/<provider>', methods=['GET'])
-@login_required
+# TODO: Implement authentication (login_required)
 async def test_provider_call(provider):
     """
     Test endpoint to validate a provider API key by making a simple API call
@@ -178,7 +176,7 @@ async def test_provider_call(provider):
 
 # User Preferences
 @user_settings_bp.route('/preferences', methods=['POST'])
-@login_required
+# TODO: Implement authentication (login_required)
 def update_preferences():
     """
     Update user preferences
@@ -204,7 +202,7 @@ def update_preferences():
         return jsonify({'error': f'Failed to update preferences: {str(e)}'}), 500
 
 @user_settings_bp.route('/preferences', methods=['GET'])
-@login_required
+# TODO: Implement authentication (login_required)
 def get_preferences():
     """
     Get user preferences

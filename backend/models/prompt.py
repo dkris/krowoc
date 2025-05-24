@@ -1,6 +1,7 @@
-from sqlalchemy import Column, Integer, String, Text, ARRAY, DateTime, ForeignKey, Enum
+from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey, Enum
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
+from sqlalchemy.types import JSON
 import enum
 from .base import Base
 
@@ -16,8 +17,8 @@ class Prompt(Base):
     title = Column(String(255), nullable=False)
     description = Column(Text, nullable=True)
     prompt_text = Column(Text, nullable=False)
-    tags = Column(ARRAY(String), nullable=True)
-    model_whitelist = Column(ARRAY(String), nullable=True)
+    tags = Column(JSON, nullable=True)
+    model_whitelist = Column(JSON, nullable=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     state = Column(Enum(PromptState), default=PromptState.DRAFT, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())

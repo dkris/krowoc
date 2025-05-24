@@ -9,7 +9,7 @@ This directory contains the Flask backend API and business logic for Krowoc.
 - Alembic for database migrations
 - GraphQL for API contracts
 - Pydantic for data validation
-- aisuite for LLM integration
+- langchain for LLM integration
 - loguru for structured logging
 - Pytest for testing
 

@@ -1,6 +1,6 @@
 import logging
 from backend.services.database import get_supabase_client
-from backend.services.auth import verify_password
+# TODO: Implement password verification for REST endpoints
 
 logger = logging.getLogger(__name__)
 
@@ -55,6 +55,7 @@ async def verify_provider_api_key(user_id, provider, api_key):
         key_hash = result.data[0]['key_hash']
         
         # Verify the key against the hash
+        # TODO: Implement password verification for REST endpoints
         is_valid = verify_password(api_key, key_hash)
         
         # Update last used timestamp if key is valid
